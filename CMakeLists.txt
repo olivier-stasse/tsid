@@ -16,12 +16,6 @@
 
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 
-INCLUDE(cmake/base.cmake)
-INCLUDE(cmake/boost.cmake)
-INCLUDE(cmake/eigen.cmake)
-INCLUDE(cmake/python.cmake)
-INCLUDE(cmake/ide.cmake)
-INCLUDE(cmake/apple.cmake)
 
 SET(PROJECT_NAME tsid)
 SET(PROJECT_DESCRIPTION "Efficient Task Space Inverse Dynamics for Multi-body Systems based on Pinocchio")
@@ -39,7 +33,23 @@ ENDIF(APPLE)
 SET(CXX_DISABLE_WERROR True)
 SET(CMAKE_VERBOSE_MAKEFILE True)
 
-SETUP_PROJECT()
+INCLUDE(cmake/base.cmake)
+
+# Specify the project.
+cmake_policy(SET CMP0048 NEW)
+PROJECT(${PROJECT_NAME}
+  LANGUAGES
+  CXX
+  VERSION
+  ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}
+  )
+
+find_package (Boost REQUIRED
+  python filesystem system thread program_options unit_test_framework)
+find_package (Eigen3 REQUIRED NO_MODULE)
+INCLUDE(cmake/python.cmake)
+INCLUDE(cmake/ide.cmake)
+INCLUDE(cmake/apple.cmake)
 
 IF(WIN32)
   SET(LINK copy_if_different)
@@ -72,7 +82,7 @@ ENDIF(EIGEN_NO_AUTOMATIC_RESIZING)
 # ----------------------------------------------------
 # --- DEPENDENCIES -----------------------------------
 # ----------------------------------------------------
-ADD_REQUIRED_DEPENDENCY("eigen3 >= 3.2.0") # Eigen::Ref appeared from 3.2.0
+ADD_PROJECT_DEPENDENCY(Eigen3 REQUIRED) # Eigen::Ref appeared from 3.2.0
 
 # Fail-safe support for catkin-ized pinocchio:
 #  - If catkin-based pinocchio is installed it runs the CFG_EXTRAS to set up the Pinocchio preprocessor directives
@@ -92,8 +102,8 @@ IF(BUILD_PYTHON_INTERFACE)
   ADD_REQUIRED_DEPENDENCY("eigenpy >= 1.4.0")
 ENDIF(BUILD_PYTHON_INTERFACE)
 
-SET(BOOST_COMPONENTS ${BOOST_REQUIERED_COMPONENTS} ${BOOST_OPTIONAL_COMPONENTS} ${BOOST_BUILD_COMPONENTS})
-SEARCH_FOR_BOOST()
+#SET(BOOST_COMPONENTS ${BOOST_REQUIERED_COMPONENTS} ${BOOST_OPTIONAL_COMPONENTS} ${BOOST_BUILD_COMPONENTS})
+#SEARCH_FOR_BOOST()
 
 # Path to boost headers
 INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
@@ -208,4 +218,4 @@ ADD_SUBDIRECTORY(unittest)
 # --- PACKAGING ----------------------------------------------------------------
 PKG_CONFIG_APPEND_LIBS(${PROJECT_NAME})
 
-SETUP_PROJECT_FINALIZE()
+SETUP_PROJECT_PACKAGE_FINALIZE()
